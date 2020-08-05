@@ -1,13 +1,44 @@
 import React from 'react'
 import { useQuery } from 'urql'
-import gql from 'graphql-tag'
 import Link from './Link'
+import gql from 'graphql-tag'
 
+const FEED_SEARCH_QUERY = gql`
+  query FeedSearchQuery($filter: String!) {
+    feed(filter: $filter) {
+      links {
+        id
+        url
+        description
+        createdAt
+        postedBy {
+          id
+          name
+        }
+        votes {
+          id
+          user {
+            id
+          }
+        }
+      }
+    }
+  }
+`
 const Search = () => {
     const [filter, setFilter] = React.useState('')
 
-    const search = React.useCallback(() => { }, []);
-    const links = []
+    const [result, executeQuery] = useQuery({
+        query: FEED_SEARCH_QUERY,
+        variables: { filter },
+        pause: true,
+    })
+
+    const search = React.useCallback(() => {
+        executeQuery();
+    }, [executeQuery]);
+
+    const links = result.data ? result.data.feed.links : [];
 
     return (
         <div>
